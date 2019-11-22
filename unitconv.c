@@ -7,7 +7,6 @@
 #include <gdk/gdk.h>
 #include <glib.h>
 
-#include <xcb/xcb.h>
 
 
 /* Hooray for globals. Making small projects easier for newbies. */
@@ -167,40 +166,9 @@ static void activate(GtkApplication* applet, gpointer user_data)
 
 int main (int argc, char **argv)
 {
-  /* we need to use XCB (or could have used Xlib) to get display geometry.*/
-  xcb_screen_t *screen;
-  xcb_screen_iterator_t iter;
-  int screen_num; /* gets set by xcb_connect */
-
-  xcb_connection_t *dispcon = xcb_connect (NULL, &screen_num);
-
-
-  /*  const xcb_setup_t *setup = xcb_get_setup (dispcon);*/
-  /* in the python version I looked at root window dimensions. Here I am
-     looking at actual screen dimensions. */
-  /* Get the screen number */
-  iter = xcb_setup_roots_iterator (xcb_get_setup (dispcon));
-  for (; iter.rem; --screen_num, xcb_screen_next (&iter))
-  {
-    if (screen_num == 0)
-    {
-      screen = iter.data;
-      break;
-    }
-  }
-  xcb_flush (dispcon);
-
-  /*  screen = xcb_setup_roots_iterator(setup).data; */
-/*  printf("Width:\t%d\nHeight:\t%d\n",screen->width_in_pixels,screen->height_in_pixels);*/
-  display_width=screen->width_in_pixels;
-  display_height=screen->height_in_pixels;
-  /* we're all done using XCB now. We got what we needed.*/
-  xcb_disconnect (dispcon);
-
   /* GTK applet initialization stuff */
   GtkApplication *applet;
   int status;
-
   applet = gtk_application_new ("org.wyatt8740.tabletpc_unitconv", G_APPLICATION_FLAGS_NONE);
   g_signal_connect (applet, "activate", G_CALLBACK (activate), NULL);
 /* use this instead of `gtk_window_set_wmclass()`, which is deprecated: */
