@@ -1,5 +1,7 @@
 A simple unit widget written in C with GTK+ 3.
 
+![Screenshot of program](progwindow.png)
+
 I would prefer if everyone used the metric system, but the American in me
 has been conditioned to be able to attach more real-world meaning to lengths
 and distances when they are expressed in feet.
