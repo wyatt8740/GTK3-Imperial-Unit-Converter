@@ -9,15 +9,21 @@
 
 #include <xcb/xcb.h>
 
-char *btnsize="32"; /* change icon size here. Part of filename so a string*/
-/* char *app_name="TabletPC_Applet_Menu"; */ /* so fvwm can apply its rules to it*/
-char *app_name="TabletPC_UnitConv";
+
+/* Hooray for globals. Making small projects easier for newbies. */
+/* If this starts to spiral out of control I will do a re-write. But this
+   is basically my first time using C with GTK3. so this should speed up my
+   initial time-to-working-demo. */
+
+char *app_name="TabletPC_UnitConv"; /* for FVWM to be happy */
 int display_height=0;
 int display_width=0;
 GtkLabel *resultLabel;
 GtkEntry *inputEntry;
 GtkComboBoxText *inLabel;
 int lengthMult=0; /* mm, cm, m multiplication factor */
+
+/* lots of callbacks and other misc. utility functions here */
 
 /* allocates and populates a string for using as a label. */
 /* this result will need to be freed sometime after each call. */
@@ -72,6 +78,7 @@ input_insert_after (GtkEditable* edit,
   const gchar* content = gtk_entry_get_text( GTK_ENTRY(edit) );
   gchar* output = parseEntry( content);
   gtk_label_set_text(resultLabel,output);
+  /* parseEntry() malloc's a string. Clear it.*/
   g_free(output);
 }
 
@@ -87,13 +94,10 @@ input_delete_after (GtkEditable* edit, gchar *text,
   /*no op cast to prevent compiler warnings*/
   (void) start_pos; (void) end_pos; (void) data;
 
-  
-  /*get text and modify the entry*/
-/*    int cursor_pos = gtk_editable_get_position(edit);*/
   const gchar* content = gtk_entry_get_text( GTK_ENTRY(edit) );
   gchar* output = parseEntry( content);
   gtk_label_set_text(resultLabel,output);
-/*    gtk_editable_set_position(edit, cursor_pos);*/
+  /* parseEntry() malloc's a string. Clear it.*/
   g_free(output);
 }
 
@@ -116,9 +120,8 @@ void input_unit(GtkComboBox *widget, gpointer data)
   const gchar* content = gtk_entry_get_text(GTK_ENTRY((GtkEditable*)inputEntry));
   gchar* output = parseEntry( content);
   gtk_label_set_text(resultLabel,output);
-/*    gtk_editable_set_position(edit, cursor_pos);*/
+  /* parseEntry() malloc's a string. Clear it.*/
   g_free(output);
-  
 }
 
 static void activate(GtkApplication* applet, gpointer user_data)
@@ -132,42 +135,33 @@ static void activate(GtkApplication* applet, gpointer user_data)
   GtkWidget *vbox=gtk_box_new (GTK_ORIENTATION_VERTICAL, 0); /* 0 spacing */
   GtkWidget *hboxInLine=gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   GtkWidget *hboxOutLine=gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-/*  GtkLabel *inLabel=(GtkLabel *)gtk_label_new("cm"); */
-
-  /* inLabel is global */
+  
+  /* inLabel is globally defined. Just assign it here. */
   inLabel=(GtkComboBoxText*)gtk_combo_box_text_new();
   gtk_combo_box_text_append(inLabel, 0, "mm");
   gtk_combo_box_text_append(inLabel, 0, "cm");
   gtk_combo_box_text_append(inLabel, 0, "m");
   /* text variant doesn't have its own 'set_active' func, so we do a cast */
   gtk_combo_box_set_active((GtkComboBox*)inLabel,1);
-  /* defaults to cm so lengthMult must be 100 */
+  /* defaults to cm so lengthMult must be 100 at launch */
   lengthMult=100;
 
   g_signal_connect(inLabel, "changed", G_CALLBACK(input_unit), NULL );
 
-/*  GtkLabel *outLabelInch=(GtkLabel *)gtk_label_new("in");*/
-/*  GtkLabel *outLabelFoot=(GtkLabel *)gtk_label_new("ft)");*/
   gtk_container_add (GTK_CONTAINER (window), vbox);
   resultLabel=(GtkLabel *)gtk_label_new("0.0 ft (0.00\")");
 
-/*  GtkEntryBuffer *inputEntryBuffer=gtk_entry_buffer_new("", 0);*/
   inputEntry=(GtkEntry *)gtk_entry_new();
   gtk_entry_set_width_chars(inputEntry, 11);
   g_signal_connect_after(inputEntry, "insert-text", G_CALLBACK(input_insert_after), NULL );
   g_signal_connect(inputEntry, "insert-text", G_CALLBACK(input_insert), NULL );
   g_signal_connect_after(inputEntry, "delete-text", G_CALLBACK(input_insert_after), NULL );
-/*  g_signal_connect(inputEntry, "delete-text", G_CALLBACK(input_delete), NULL );*/
   gtk_box_pack_start((GtkBox *)hboxInLine, (GtkWidget *)inputEntry, (gboolean)0, (gboolean)1, 0);
   gtk_box_pack_start((GtkBox *)hboxInLine, (GtkWidget *)inLabel, (gboolean)0, (gboolean)1, 4);
   gtk_box_pack_start((GtkBox *)hboxOutLine, (GtkWidget *)resultLabel, (gboolean)0, (gboolean)1, 4);
-/*  gtk_box_pack_start((GtkBox *)hboxOutLine, (GtkWidget *)outLabelInch, (gboolean)0, (gboolean)1, 0);*/
-//  gtk_container_add((GtkContainer *)vbox, (GtkWidget *)inputEntry);
   gtk_box_pack_start((GtkBox *)vbox, (GtkWidget *)hboxInLine, (gboolean)0, (gboolean)1, 0);
   gtk_box_pack_start((GtkBox *)vbox, (GtkWidget *)hboxOutLine, (gboolean)0, (gboolean)1, 4);
-//  gtk_container_add((GtkContainer *)vbox, (GtkWidget *)resultLabel);
-  gtk_widget_show_all(window);
-              
+  gtk_widget_show_all(window);          
 }
 
 
@@ -181,7 +175,7 @@ int main (int argc, char **argv)
   xcb_connection_t *dispcon = xcb_connect (NULL, &screen_num);
 
 
-/*  const xcb_setup_t *setup = xcb_get_setup (dispcon);*/
+  /*  const xcb_setup_t *setup = xcb_get_setup (dispcon);*/
   /* in the python version I looked at root window dimensions. Here I am
      looking at actual screen dimensions. */
   /* Get the screen number */
