@@ -39,7 +39,7 @@ gchar *parseEntry(const gchar *inputStr)
   int resultFootInt=(int)round(resultFoot);
   double resultInchOnly=fmod(resultInch,12.0);
   /* find how much we need to allocate */
-  size_t neededChars=snprintf(NULL,0,DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch);
+  size_t neededChars=snprintf(NULL,0,DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch)+1;
   gchar *output=g_malloc((gsize)neededChars); /* normal malloc() probably is the same here */
   sprintf(output, DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch);
   return output;
