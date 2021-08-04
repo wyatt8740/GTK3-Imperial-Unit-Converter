@@ -6,7 +6,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <glib.h>
-
+#include <math.h>
 
 
 /* Hooray for globals. Making small projects easier for newbies. */
@@ -28,17 +28,20 @@ int lengthMult=0; /* mm, cm, m multiplication factor */
 /* this result will need to be freed sometime after each call. */
 gchar *parseEntry(const gchar *inputStr)
 {
-  static const char DECIMAL_FORMAT_STRING[]="%.1f ft (%.2f\")";
+/*  static const char DECIMAL_FORMAT_STRING[]="%d' %.1f\" (%.2f\")"; */
+  static const char DECIMAL_FORMAT_STRING[]="%d' %.1f\"     ---     (%.2f\")";
   /* convert to meters */
   
   /* meters to feet */
   double resultInch=strtod(inputStr,NULL) * (1.0/lengthMult) * 39.3701;
 /*  double resultFoot=(strtod(inputStr,NULL) * (1.0/lengthMult) * 39.3701 )/12.0;*/
   double resultFoot=resultInch / 12.0;
+  int resultFootInt=(int)round(resultFoot);
+  double resultInchOnly=fmod(resultInch,12.0);
   /* find how much we need to allocate */
-  size_t neededChars=snprintf(NULL,0,DECIMAL_FORMAT_STRING,resultFoot,resultInch);
+  size_t neededChars=snprintf(NULL,0,DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch);
   gchar *output=g_malloc((gsize)neededChars); /* normal malloc() probably is the same here */
-  sprintf(output, DECIMAL_FORMAT_STRING,resultFoot,resultInch);
+  sprintf(output, DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch);
   return output;
 }
 
@@ -148,7 +151,7 @@ static void activate(GtkApplication* applet, gpointer user_data)
   g_signal_connect(inLabel, "changed", G_CALLBACK(input_unit), NULL );
 
   gtk_container_add (GTK_CONTAINER (window), vbox);
-  resultLabel=(GtkLabel *)gtk_label_new("0.0 ft (0.00\")");
+  resultLabel=(GtkLabel *)gtk_label_new("0' 0.0\"     ---     0.00 in");
 
   inputEntry=(GtkEntry *)gtk_entry_new();
   gtk_entry_set_width_chars(inputEntry, 11);
