@@ -22,6 +22,10 @@ GtkEntry *inputEntry;
 GtkComboBoxText *inLabel;
 int lengthMult=0; /* mm, cm, m multiplication factor */
 
+gchar *cleanUpPtr = NULL;
+
+GtkWidget *window;
+
 /* lots of callbacks and other misc. utility functions here */
 
 /* allocates and populates a string for using as a label. */
@@ -29,7 +33,7 @@ int lengthMult=0; /* mm, cm, m multiplication factor */
 gchar *parseEntry(const gchar *inputStr)
 {
 /*  static const char DECIMAL_FORMAT_STRING[]="%d' %.1f\" (%.2f\")"; */
-  static const char DECIMAL_FORMAT_STRING[]="%d' %.1f\"     ---     (%.2f\")";
+  static const char DECIMAL_FORMAT_STRING[]="%d' %.1f\"    ---    (%.2f\")";
   /* convert to meters */
   
   /* meters to feet */
@@ -79,9 +83,22 @@ input_insert_after (GtkEditable* edit,
   (void) new_text; (void) new_length; (void) position; (void) data;
   const gchar* content = gtk_entry_get_text( GTK_ENTRY(edit) );
   gchar* output = parseEntry( content);
+  cleanUpPtr=output;
   gtk_label_set_text(resultLabel,output);
   /* parseEntry() malloc's a string. Clear it.*/
   g_free(output);
+  output=NULL;
+}
+
+gboolean
+on_widget_deleted(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+  if(cleanUpPtr != NULL)
+  {
+    g_free(cleanUpPtr);
+    cleanUpPtr=NULL;
+  }
+  return FALSE;
 }
 
 void
@@ -128,7 +145,7 @@ void input_unit(GtkComboBox *widget, gpointer data)
 
 static void activate(GtkApplication* applet, gpointer user_data)
 {
-  GtkWidget *window;
+/*  GtkWidget *window; */
   window = gtk_application_window_new (applet);
   gtk_window_set_title (GTK_WINDOW (window), "Units");
   /* gtk_window_set_wmclass() is deprecated, replacing with g_set_prgname()
@@ -151,7 +168,7 @@ static void activate(GtkApplication* applet, gpointer user_data)
   g_signal_connect(inLabel, "changed", G_CALLBACK(input_unit), NULL );
 
   gtk_container_add (GTK_CONTAINER (window), vbox);
-  resultLabel=(GtkLabel *)gtk_label_new("0' 0.0\"     ---     0.00 in");
+  resultLabel=(GtkLabel *)gtk_label_new("0' 0.0\"    ---    0.00 in");
 
   inputEntry=(GtkEntry *)gtk_entry_new();
   gtk_entry_set_width_chars(inputEntry, 11);
@@ -163,6 +180,8 @@ static void activate(GtkApplication* applet, gpointer user_data)
   gtk_box_pack_start((GtkBox *)hboxOutLine, (GtkWidget *)resultLabel, (gboolean)0, (gboolean)1, 4);
   gtk_box_pack_start((GtkBox *)vbox, (GtkWidget *)hboxInLine, (gboolean)0, (gboolean)1, 0);
   gtk_box_pack_start((GtkBox *)vbox, (GtkWidget *)hboxOutLine, (gboolean)0, (gboolean)1, 4);
+
+  g_signal_connect(G_OBJECT(window), "delete-event", G_CALLBACK(on_widget_deleted), NULL);
   gtk_widget_show_all(window);          
 }
 
