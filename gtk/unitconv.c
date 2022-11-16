@@ -40,7 +40,8 @@ gchar *parseEntry(const gchar *inputStr)
   double resultInch=strtod(inputStr,NULL) * (1.0/lengthMult) * 39.3701;
 /*  double resultFoot=(strtod(inputStr,NULL) * (1.0/lengthMult) * 39.3701 )/12.0;*/
   double resultFoot=resultInch / 12.0;
-  int resultFootInt=(int)round(resultFoot);
+/*  int resultFootInt=(int)round(resultFoot);*/
+  int resultFootInt=(int)resultFoot;
   double resultInchOnly=fmod(resultInch,12.0);
   /* find how much we need to allocate */
   size_t neededChars=snprintf(NULL,0,DECIMAL_FORMAT_STRING,resultFootInt,resultInchOnly,resultInch)+1;
